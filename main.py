@@ -20,7 +20,7 @@ async def read_item(item_id: int):
   else:
     return items[item_id]
 
-@app.post("/items")
+@app.post("/items/")
 async def create_item(item: Item):
   items.append(item)
   return items
@@ -32,3 +32,11 @@ async def read_items():
 @app.get("/items/", response_model=Item)
 async def list_items(limit: int = 10):
   return items[0:limit]
+
+@app.put("/items/{item_id}")
+async def update_item(item_id: int, item: Item):
+  if item_id >= len(items):
+    raise HTTPException(status_code=404, detail=f"Item {item_id} not found") 
+  else:
+    items[item_id] = item
+    return items
