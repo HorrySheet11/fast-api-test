@@ -1,7 +1,11 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
+import asyncio
+from prisma import Prisma
+from prisma.models import Items
 
-items = [{"text": "apple", "is_done": True}, {"text": "banana", "is_done": False}]
+db = Prisma()
+
 class Item(BaseModel):
   text: str
   is_done: bool = False
@@ -14,24 +18,44 @@ router = APIRouter(
 
 @router.post("/")
 async def create_item(item: Item):
-  items.append(dict(item))
-  return items
+  await db.connect()
+  data = await db.items.create(
+    data={
+      "name": item.text,
+      "isDone": item.is_done
+    }
+  )
+  await db.disconnect()
+  return data
 
-@router.get("/{item_id}", response_model=Item)
-async def read_item(item_id: int):
-  if item_id >= len(items):
-    raise HTTPException(status_code=404, detail=f"Item {item_id} not found") 
-  else:
-    return items[item_id]
+@router.get("/{item_id}")
+async def read_item(item_id : int):
+  await db.connect()
+  length = await db.items.count()
+  if item_id < 0 or item_id > length:
+    raise HTTPException(status_code=404, detail="Item not found")
+  item = await db.items.find_unique(
+    where={"id": item_id}
+    )
+  await db.disconnect()
+  return item
 
 @router.get("/")
 async def read_items():
+  await db.connect()
+  items = await db.items.find_many()
+  await db.disconnect()
   return items
 
 @router.put("/{item_id}")
 async def update_item(item_id: int, item: Item):
-  if item_id >= len(items):
-    raise HTTPException(status_code=404, detail=f"Item {item_id} not found") 
-  else:
-    items[item_id] = item.model_dump()
-    return items
+  await db.connect()
+  res = await db.items.update(
+    where={"id": item_id},
+    data={
+      "name": item.text,
+      "isDone": item.is_done
+    }
+  )
+  await db.disconnect()
+  return res
