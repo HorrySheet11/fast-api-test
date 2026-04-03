@@ -2,10 +2,8 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 import asyncio
 from prisma import Prisma
-from prisma.models import Items
 
 db = Prisma()
-
 class Item(BaseModel):
   text: str
   is_done: bool = False
@@ -15,6 +13,14 @@ router = APIRouter(
   prefix="/items",
   tags=["items"],
   responses={404: {"description": "Not found"}})
+
+@router.get("/")
+async def read_items():
+  await db.connect()
+  print("read_items")
+  items = await db.items.find_many()
+  await db.disconnect()
+  return items
 
 @router.post("/")
 async def create_item(item: Item):
@@ -39,13 +45,6 @@ async def read_item(item_id : int):
     )
   await db.disconnect()
   return item
-
-@router.get("/")
-async def read_items():
-  await db.connect()
-  items = await db.items.find_many()
-  await db.disconnect()
-  return items
 
 @router.put("/{item_id}")
 async def update_item(item_id: int, item: Item):
