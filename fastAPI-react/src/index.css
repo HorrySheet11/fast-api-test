@@ -23,6 +23,9 @@
   h6 {
     @apply text-lg;
   }
+  button{
+    @apply p-2 bg-slate-400 rounded cursor-pointer
+  }
 }
 
 @theme{  

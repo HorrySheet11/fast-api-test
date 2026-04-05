@@ -58,3 +58,12 @@ async def update_item(item_id: int, item: Item):
   )
   await db.disconnect()
   return res
+
+@router.delete("/{item_id}")
+async def delete_item(item_id: int):
+  await db.connect()
+  res = await db.items.delete(
+    where={"id": item_id}
+  )
+  await db.disconnect()
+  return res
