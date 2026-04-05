@@ -7,14 +7,15 @@ function App() {
 	useEffect(() => {
 		try {
 			async function getItems() {
-				const response = await API.get("/items");
+				const response = await API.get("/items"
+				);
 				setItems(response.data);
 			}
       getItems();
 		} catch (error) {
 			console.log(error);
 		}
-	});
+	},[]);
 
 	return (
 		<>
