@@ -26,14 +26,11 @@ function App() {
 		}
 	}, []);
 
-	const handleClick = (id) => {
+	const handleClick = async (id) => {
 		setDialogOpen(true);
 		try {
-			async function getItem(id) {
 				const response = await API.get(`/items/${id}`);
 				setItem(response.data);
-			}
-			getItem(id);
 		} catch (error) {
 			alert(error);
 		}
@@ -60,8 +57,9 @@ function App() {
 		handleClose();
 	}
 
-	async function handleSubmit() {
+	async function handleSubmit(type) {
 		try {
+			if (type === "add") {
 				const response = await API.post(
 					"/items",
 					{
@@ -75,6 +73,21 @@ function App() {
 					},
 				);
 				console.log(response.data);
+			} else if (Number.isInteger(parseInt(type, 10))) {
+				const response = await API.put(
+					`/items/${type}`,
+					{
+						text: addItem,
+						is_done: checked,
+					},
+					{
+						headers: {
+							"Content-Type": "application/json",
+						},
+					},
+				);
+				console.log(response.data);
+			}
 		} catch (error) {
 			alert(error);
 		} finally {
@@ -126,14 +139,30 @@ function App() {
 					<DialogTitle>Loading...</DialogTitle>
 				) : (
 					<>
-						<DialogTitle>{item.name}</DialogTitle>
+						<input
+							type="text"
+							value={item.name}
+							className="p-1 bg-slate-400 rounded"
+							onChange={(e) => handleNameChange(e)}
+						/>
 						<DialogContent>
-							<p>Completed: {item.isDone ? "True" : "False"}</p>
+							<p>
+								Completed: <> </>
+								<input
+									type="checkbox"
+									id="done"
+									checked={checked}
+									className="p-1 bg-slate-400 rounded"
+									onChange={() => setChecked(!checked)}
+								/>
+							</p>
 						</DialogContent>
 						<DialogActions>
 							<Button onClick={() => handleDelete(item.id)}>Delete</Button>
-							<Button>Back</Button>
+							<Button onClick={() => handleSubmit(item.id)}>Edit</Button>
+							<Button onClick={() => handleClose()}>Back</Button>
 						</DialogActions>
+						{/* TODO: add update item */}
 					</>
 				)}
 			</Dialog>
@@ -166,7 +195,7 @@ function App() {
 				</DialogContent>
 				<DialogActions>
 					<Button onClick={() => handleClose("add")}>Cancel</Button>
-					<Button onClick={() => handleSubmit()}>Submit</Button>
+					<Button onClick={() => handleSubmit("add")}>Submit</Button>
 				</DialogActions>
 			</Dialog>
 		</div>

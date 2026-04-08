@@ -15,7 +15,6 @@ router = APIRouter(
   responses={404: {"description": "Not found"}})
 
 
-#FIXME: Check if db is connected
 async def is_db_connected() -> bool:
     try:
         await db.execute_raw('SELECT 1')
@@ -45,6 +44,8 @@ async def create_item(item: Item):
   await db.disconnect()
   return data
 
+
+# FIXME: get 9 and 10 not working
 @router.get("/{item_id}")
 async def read_item(item_id : int):
   if await is_db_connected() == False:
