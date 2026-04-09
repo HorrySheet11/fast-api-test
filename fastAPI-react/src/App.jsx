@@ -3,7 +3,7 @@ import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogTitle from "@mui/material/DialogTitle";
-import { useEffect, useState } from "react";
+import { use, useEffect, useState } from "react";
 import API from "./utils/axios";
 
 function App() {
@@ -26,15 +26,15 @@ function App() {
 		}
 	}, []);
 
-	const handleClick = async (id) => {
+	async function handleClick(id) {
 		setDialogOpen(true);
 		try {
-				const response = await API.get(`/items/${id}`);
-				setItem(response.data);
+			const response = await API.get(`/items/${id}`);
+			setItem(response.data);
 		} catch (error) {
 			alert(error);
 		}
-	};
+	}
 
 	function handleClose(item) {
 		if (item) {
@@ -73,12 +73,15 @@ function App() {
 					},
 				);
 				console.log(response.data);
-			} else if (Number.isInteger(parseInt(type, 10))) {
+				handleClose("add");
+			} else {
+				//FIXME: undefined id
+				console.log(item);
 				const response = await API.put(
 					`/items/${type}`,
 					{
-						text: addItem,
-						is_done: checked,
+						text: item.name,
+						is_done: item.isDone,
 					},
 					{
 						headers: {
@@ -87,11 +90,12 @@ function App() {
 					},
 				);
 				console.log(response.data);
+				handleClose();
 			}
 		} catch (error) {
 			alert(error);
 		} finally {
-			handleClose("add");
+			
 			setAddItem("");
 			setChecked(false);
 			const response = await API.get("/items");
@@ -99,9 +103,17 @@ function App() {
 		}
 	}
 
-	function handleNameChange(e) {
-		setAddItem(e.target.value);
+	function handleNameChange(e, action) {
+		if (action === "add") {
+			setAddItem(e.target.value);
+		} else if (action === "edit") {
+			setItem({ ...item, name: e.target.value });
+		}
 	}
+
+	useEffect(() => {
+		console.log(item);
+	}, [item]);
 
 	return (
 		<div className="p-10 h-screen w-full flex flex-col items-center gap-20">
@@ -130,6 +142,7 @@ function App() {
 					))}
 				</div>
 			)}
+			{/* Inspect Item */}
 			<Dialog
 				open={dialogOpen}
 				onClose={() => handleClose()}
@@ -143,17 +156,16 @@ function App() {
 							type="text"
 							value={item.name}
 							className="p-1 bg-slate-400 rounded"
-							onChange={(e) => handleNameChange(e)}
+							onChange={(e) => handleNameChange(e, "edit")}
 						/>
 						<DialogContent>
 							<p>
 								Completed: <> </>
 								<input
 									type="checkbox"
-									id="done"
-									checked={checked}
+									checked={!!item.isDone}
 									className="p-1 bg-slate-400 rounded"
-									onChange={() => setChecked(!checked)}
+									onChange={() => setItem({ ...item, isDone: !item.isDone })}
 								/>
 							</p>
 						</DialogContent>
@@ -162,10 +174,12 @@ function App() {
 							<Button onClick={() => handleSubmit(item.id)}>Edit</Button>
 							<Button onClick={() => handleClose()}>Back</Button>
 						</DialogActions>
-						{/* TODO: add update item */}
+						{/* TODO: create update item */}
 					</>
 				)}
 			</Dialog>
+
+			{/* Add Item */}
 			<Dialog open={itemDialogOpen} onClose={() => handleClose("add")}>
 				<DialogTitle>Add Item</DialogTitle>
 				<DialogContent>
@@ -177,7 +191,7 @@ function App() {
 							value={addItem}
 							placeholder="Enter item here"
 							className="p-1 bg-slate-400 rounded"
-							onChange={(e) => handleNameChange(e)}
+							onChange={(e) => handleNameChange(e, "add")}
 						/>
 					</label>
 					<br />

@@ -45,7 +45,6 @@ async def create_item(item: Item):
   return data
 
 
-# FIXME: get 9 and 10 not working
 @router.get("/{item_id}")
 async def read_item(item_id : int):
   if await is_db_connected() == False:
