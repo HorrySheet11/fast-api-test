@@ -29,8 +29,8 @@ function App() {
 	async function handleClick(id) {
 		setDialogOpen(true);
 		try {
-			const response = await API.get(`/items/${id}`);
-			setItem(response.data);
+			const item = items.find((item) => item.id === id);
+			setItem(item);
 		} catch (error) {
 			alert(error);
 		}
@@ -75,7 +75,6 @@ function App() {
 				console.log(response.data);
 				handleClose("add");
 			} else {
-				//FIXME: undefined id
 				console.log(item);
 				const response = await API.put(
 					`/items/${type}`,
@@ -95,8 +94,8 @@ function App() {
 		} catch (error) {
 			alert(error);
 		} finally {
-			
 			setAddItem("");
+			setItem();	
 			setChecked(false);
 			const response = await API.get("/items");
 			setItems(response.data);
@@ -174,7 +173,6 @@ function App() {
 							<Button onClick={() => handleSubmit(item.id)}>Edit</Button>
 							<Button onClick={() => handleClose()}>Back</Button>
 						</DialogActions>
-						{/* TODO: create update item */}
 					</>
 				)}
 			</Dialog>
